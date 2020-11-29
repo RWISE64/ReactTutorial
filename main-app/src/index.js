@@ -98,10 +98,15 @@ class Game extends React.Component {
             const desc = move ?
                 'Go to move #' + move :
                 'Go to game start';
+            const moveDesc = ' - ' + history[move].description;
+            const isCurrent = move === this.state.stepNumber;
             return (
-                <li key={move}>
+                <li 
+                    key={move}
+                    style={{'font-weight': (isCurrent) ? 'bold' : 'normal'}}    
+                >
                     <button onClick={() => this.jumpTo(move)}>{desc}</button>
-                    {' - ' + history[move].description}
+                    {moveDesc}
                 </li>
             );
         });
