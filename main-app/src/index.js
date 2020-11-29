@@ -60,6 +60,7 @@ class Game extends React.Component {
             }],
             stepNumber: 0,
             xIsNext: true,
+            reverseSteps: false,
         };
     }
 
@@ -71,14 +72,14 @@ class Game extends React.Component {
             return;
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         const description = squares[i] + ': (' + getCol(i) + ', ' + getRow(i) + ')'; 
-            this.setState({
-                history: history.concat([{
-                    squares: squares,
-                    description: description,
-                }]),
-                stepNumber: history.length,
-                xIsNext: !this.state.xIsNext,
-            });
+        this.setState({
+            history: history.concat([{
+                squares: squares,
+                description: description,
+            }]),
+            stepNumber: history.length,
+            xIsNext: !this.state.xIsNext,
+        });
     }
 
     jumpTo(step) {
@@ -93,13 +94,16 @@ class Game extends React.Component {
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
-        const moves = history.map((step, move) => {
+        let moves = [];
+        history.map((step, move) => {
             const desc = move ?
                 'Go to move #' + move :
                 'Go to game start';
             const moveDesc = ' - ' + history[move].description;
             const isCurrent = move === this.state.stepNumber;
-            return (
+            // If reversed, always insert moves to the front of the list (reverse order)
+            const pos = (this.state.reverseSteps) ? 0 : moves.length;
+            moves.splice(pos, 0,
                 <li 
                     key={move}
                     style={{'font-weight': (isCurrent) ? 'bold' : 'normal'}}    
@@ -126,6 +130,7 @@ class Game extends React.Component {
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
+                    <button onClick={() => this.setState({reverseSteps: !this.state.reverseSteps})}>Toggle Order</button>
                     <ol>{moves}</ol>
                 </div>
             </div>
