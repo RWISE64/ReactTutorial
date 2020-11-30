@@ -17,8 +17,8 @@ function Square(props) {
 
 class Board extends React.Component {
     renderSquare(i) {
-        const winner = calculateWinner(this.props.squares);
-        const winSquare = (winner && winner.indices.includes(i));
+        const result = calculateResult(this.props.squares);
+        const winSquare = (result && result.result === 'win' && result.indices.includes(i));
         // Passing in state.squares[i] to Square as prop value
         return (
             <Square
@@ -72,7 +72,7 @@ class Game extends React.Component {
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
-        if (calculateWinner(squares) || squares[i])
+        if (calculateResult(squares) || squares[i])
             return;
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         const description = squares[i] + ': (' + getCol(i) + ', ' + getRow(i) + ')'; 
@@ -96,7 +96,7 @@ class Game extends React.Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-        const winner = calculateWinner(current.squares);
+        const result = calculateResult(current.squares);
 
         let moves = [];
         history.map((step, move) => {
@@ -119,8 +119,12 @@ class Game extends React.Component {
         });
 
         let status;
-        if (winner)
-            status = 'Winner: ' + winner.winner;
+        if (result) {
+            if (result.result === 'win')
+                status = 'Winner: ' + result.winner;
+            else if (result.result === 'draw')
+                status = 'Draw.';
+        }
         else
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 
@@ -149,7 +153,7 @@ ReactDOM.render(
     document.getElementById('root')
 );
 
-function calculateWinner(squares) {
+function calculateResult(squares) {
     const lines = [
         [0, 1, 2],
         [3, 4, 5],
@@ -160,13 +164,28 @@ function calculateWinner(squares) {
         [0, 4, 8],
         [2, 4, 6],
     ];
+    // Flag to check whether a win is possible
+    // Will be set to true if at least one line isn't occupied by both X and O
+    let winPossible = false;
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
+        // Check for winner first
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return {winner: squares[a], indices: [a, b, c]};
+            return {result: 'win', winner: squares[a], indices: [a, b, c]};
         }
+        // Otherwise continue checking for openings
+        let hasX = false;
+        let hasO = false;
+        if (squares[a] === 'X' || squares[b] === 'X' || squares[c] === 'X')
+            hasX = true;
+        if (squares[a] === 'O' || squares[b] === 'O' || squares[c] === 'O')
+            hasO = true;
+        if (!hasX || !hasO)
+            winPossible = true;
+        
     }
-    return null;
+    // Return null if a win is possible, otherwise draw
+    return (winPossible) ? null : {result: 'draw'};
 }
 
 function getCol(i) {
