@@ -6,7 +6,7 @@ import './index.css';
 function Square(props) {
     return (
         <button
-            className="square"
+            className={"square " + props.class}
             onClick={props.onClick}
         >
             {/* Render value received from props */}
@@ -17,12 +17,16 @@ function Square(props) {
 
 class Board extends React.Component {
     renderSquare(i) {
+        const winner = calculateWinner(this.props.squares);
+        const winSquare = (winner && winner.indices.includes(i));
         // Passing in state.squares[i] to Square as prop value
         return (
             <Square
                 value={this.props.squares[i]}
                 // Pass Square onClick(), as it Square can't directly update Game's state
                 onClick={() => this.props.onClick(i)}
+                class={(winSquare) ? 'highlight' : ''}
+                key={i}
             />
         );
     }
@@ -35,7 +39,7 @@ class Board extends React.Component {
                 row.push(this.renderSquare((i * 3) + j));
             }
             board.push(
-            <div className="board-row">
+            <div key={'row' + i} className="board-row">
                 {row}
             </div>
             );
@@ -106,7 +110,7 @@ class Game extends React.Component {
             moves.splice(pos, 0,
                 <li 
                     key={move}
-                    style={{'font-weight': (isCurrent) ? 'bold' : 'normal'}}    
+                    style={{fontWeight: (isCurrent) ? 'bold' : 'normal'}}    
                 >
                     <button onClick={() => this.jumpTo(move)}>{desc}</button>
                     {moveDesc}
@@ -116,7 +120,7 @@ class Game extends React.Component {
 
         let status;
         if (winner)
-            status = 'Winner: ' + winner;
+            status = 'Winner: ' + winner.winner;
         else
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 
@@ -159,7 +163,7 @@ function calculateWinner(squares) {
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
+            return {winner: squares[a], indices: [a, b, c]};
         }
     }
     return null;
